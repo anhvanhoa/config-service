@@ -1,44 +1,21 @@
 package system_configuration
 
-import "errors"
-
-// Usecase errors
-var (
-	// Validation errors
-	ErrInvalidID        = errors.New("invalid ID")
-	ErrInvalidConfigKey = errors.New("invalid config key")
-	ErrInvalidDataType  = errors.New("invalid data type")
-	ErrInvalidCategory  = errors.New("invalid category")
-	ErrInvalidValue     = errors.New("invalid config value")
-
-	// Business logic errors
-	ErrConfigNotFound           = errors.New("configuration not found")
-	ErrConfigKeyAlreadyExists   = errors.New("config key already exists")
-	ErrConfigNotEditable        = errors.New("configuration is not editable")
-	ErrCannotDeleteSystemConfig = errors.New("cannot delete system configuration")
-
-	// Permission errors
-	ErrUnauthorized = errors.New("unauthorized access")
-	ErrForbidden    = errors.New("forbidden operation")
-
-	// System errors
-	ErrInternalError = errors.New("internal server error")
-	ErrTimeout       = errors.New("operation timeout")
+import (
+	"github.com/anhvanhoa/service-core/domain/oops"
 )
 
-// Error codes
-const (
-	ErrCodeInvalidID          = "INVALID_ID"
-	ErrCodeInvalidConfigKey   = "INVALID_CONFIG_KEY"
-	ErrCodeInvalidDataType    = "INVALID_DATA_TYPE"
-	ErrCodeInvalidCategory    = "INVALID_CATEGORY"
-	ErrCodeInvalidValue       = "INVALID_VALUE"
-	ErrCodeConfigNotFound     = "CONFIG_NOT_FOUND"
-	ErrCodeConfigKeyExists    = "CONFIG_KEY_EXISTS"
-	ErrCodeConfigNotEditable  = "CONFIG_NOT_EDITABLE"
-	ErrCodeCannotDeleteSystem = "CANNOT_DELETE_SYSTEM_CONFIG"
-	ErrCodeUnauthorized       = "UNAUTHORIZED"
-	ErrCodeForbidden          = "FORBIDDEN"
-	ErrCodeInternalError      = "INTERNAL_ERROR"
-	ErrCodeTimeout            = "TIMEOUT"
+var (
+	ErrInvalidID                = oops.New("Id không hợp lệ")
+	ErrInvalidConfigKey         = oops.New("Config key không hợp lệ")
+	ErrInvalidDataType          = oops.New("Data type không hợp lệ")
+	ErrInvalidCategory          = oops.New("Category không hợp lệ")
+	ErrInvalidValue             = oops.New("Giá trị không hợp lệ")
+	ErrConfigNotFound           = oops.New("Configuration không tồn tại")
+	ErrConfigKeyAlreadyExists   = oops.New("Config key đã tồn tại")
+	ErrConfigNotEditable        = oops.New("Configuration không thể chỉnh sửa")
+	ErrCannotDeleteSystemConfig = oops.New("Không thể xóa Configuration hệ thống")
+	ErrUnauthorized             = oops.New("Truy cập không được phép")
+	ErrForbidden                = oops.New("Thao tác không được phép")
+	ErrInternalError            = oops.New("Lỗi server")
+	ErrTimeout                  = oops.New("Thời gian chờ")
 )

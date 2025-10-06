@@ -101,12 +101,7 @@ func (sc *SystemConfiguration) GetObjectValue() map[string]any {
 
 func (sc *SystemConfiguration) IsValidDataType() bool {
 	validTypes := []string{"string", "number", "boolean", "json", "array"}
-	for _, validType := range validTypes {
-		if sc.DataType == validType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(validTypes, sc.DataType)
 }
 
 func (sc *SystemConfiguration) IsValidCategory() bool {
