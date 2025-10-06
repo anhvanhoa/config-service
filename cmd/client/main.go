@@ -10,12 +10,15 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
+
 	proto_common "github.com/anhvanhoa/sf-proto/gen/common/v1"
-	proto_environmental_alert "github.com/anhvanhoa/sf-proto/gen/environmental_alert/v1"
+	proto_system_configuration "github.com/anhvanhoa/sf-proto/gen/system_configuration/v1"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/anypb"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 var serverAddress string
@@ -50,24 +53,24 @@ func inputPaging(reader *bufio.Reader) (int32, int32) {
 	return offset, limit
 }
 
-type EnvironmentalAlertClient struct {
-	environmentalAlertClient proto_environmental_alert.EnvironmentalAlertServiceClient
-	conn                     *grpc.ClientConn
+type SystemConfigurationClient struct {
+	systemConfigurationClient proto_system_configuration.SystemConfigurationServiceClient
+	conn                      *grpc.ClientConn
 }
 
-func NewEnvironmentalAlertClient(address string) (*EnvironmentalAlertClient, error) {
+func NewSystemConfigurationClient(address string) (*SystemConfigurationClient, error) {
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to gRPC server: %v", err)
 	}
 
-	return &EnvironmentalAlertClient{
-		environmentalAlertClient: proto_environmental_alert.NewEnvironmentalAlertServiceClient(conn),
-		conn:                     conn,
+	return &SystemConfigurationClient{
+		systemConfigurationClient: proto_system_configuration.NewSystemConfigurationServiceClient(conn),
+		conn:                      conn,
 	}, nil
 }
 
-func (c *EnvironmentalAlertClient) Close() {
+func (c *SystemConfigurationClient) Close() {
 	if c.conn != nil {
 		c.conn.Close()
 	}
@@ -78,341 +81,315 @@ func cleanInput(s string) string {
 	return strings.ToValidUTF8(strings.TrimSpace(s), "")
 }
 
-// ================== Environmental Alert Service Tests ==================
+func anyToString(a *anypb.Any) string {
+	if a == nil {
+		return ""
+	}
+	var v structpb.Value
+	if err := a.UnmarshalTo(&v); err == nil {
+		if b, err := json.Marshal(v.AsInterface()); err == nil {
+			return string(b)
+		}
+		return fmt.Sprintf("%v", v.AsInterface())
+	}
+	return fmt.Sprintf("[Any type=%s bytes=%d]", a.TypeUrl, len(a.Value))
+}
 
-func (c *EnvironmentalAlertClient) TestCreateEnvironmentalAlert() {
-	fmt.Println("\n=== Kiểm thử Tạo Cảnh báo Môi trường ===")
+func parseInputToAny(s string) *anypb.Any {
+	if s == "" {
+		return nil
+	}
+	var v interface{}
+	if err := json.Unmarshal([]byte(s), &v); err == nil {
+		if val, err := structpb.NewValue(v); err == nil {
+			if anyMsg, err := anypb.New(val); err == nil {
+				return anyMsg
+			}
+		}
+	}
+	// fallback to plain string
+	anyMsg, _ := anypb.New(structpb.NewStringValue(s))
+	return anyMsg
+}
+
+// ================== System Configuration Service Tests ==================
+
+func (c *SystemConfigurationClient) TestCreateSystemConfiguration() {
+	fmt.Println("\n=== Tạo System Configuration ===")
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Nhập ID thiết bị: ")
-	deviceId, _ := reader.ReadString('\n')
-	deviceId = cleanInput(deviceId)
+	fmt.Print("Nhập config_key: ")
+	configKey, _ := reader.ReadString('\n')
+	configKey = cleanInput(configKey)
 
-	fmt.Print("Nhập loại cảnh báo (temperature_high/temperature_low/humidity_high/humidity_low/ph_high/ph_low/water_shortage/equipment_failure): ")
-	alertType, _ := reader.ReadString('\n')
-	alertType = cleanInput(alertType)
+	fmt.Print("Nhập data_type (string/number/boolean/json/array): ")
+	dataType, _ := reader.ReadString('\n')
+	dataType = cleanInput(dataType)
 
-	fmt.Print("Nhập giá trị hiện tại: ")
-	currentValueStr, _ := reader.ReadString('\n')
-	currentValueStr = cleanInput(currentValueStr)
-	currentValue := float64(25.0)
-	if currentValueStr != "" {
-		if v, err := strconv.ParseFloat(currentValueStr, 64); err == nil {
-			currentValue = v
-		}
-	}
+	fmt.Print("Nhập category (irrigation/fertilization/alerts/sensors/reports): ")
+	category, _ := reader.ReadString('\n')
+	category = cleanInput(category)
 
-	fmt.Print("Nhập giá trị ngưỡng: ")
-	thresholdValueStr, _ := reader.ReadString('\n')
-	thresholdValueStr = cleanInput(thresholdValueStr)
-	thresholdValue := float64(30.0)
-	if thresholdValueStr != "" {
-		if v, err := strconv.ParseFloat(thresholdValueStr, 64); err == nil {
-			thresholdValue = v
-		}
-	}
+	fmt.Print("Nhập description: ")
+	description, _ := reader.ReadString('\n')
+	description = cleanInput(description)
 
-	fmt.Print("Nhập kiểu ngưỡng (min/max/range): ")
-	thresholdType, _ := reader.ReadString('\n')
-	thresholdType = cleanInput(thresholdType)
+	fmt.Print("Is system config? (true/false): ")
+	isSysStr, _ := reader.ReadString('\n')
+	isSysStr = cleanInput(isSysStr)
+	isSystemConfig := isSysStr == "true"
 
-	fmt.Print("Nhập mức độ nghiêm trọng (info/warning/critical/emergency): ")
-	severity, _ := reader.ReadString('\n')
-	severity = cleanInput(severity)
+	fmt.Print("Is editable? (true/false): ")
+	isEditableStr, _ := reader.ReadString('\n')
+	isEditableStr = cleanInput(isEditableStr)
+	isEditable := isEditableStr != "false"
 
-	fmt.Print("Nhập mức độ ưu tiên (1-10): ")
-	priorityStr, _ := reader.ReadString('\n')
-	priorityStr = cleanInput(priorityStr)
-	priority := int32(5)
-	if priorityStr != "" {
-		if p, err := strconv.Atoi(priorityStr); err == nil {
-			priority = int32(p)
-		}
-	}
+	fmt.Print("Nhập giá trị config_value (hỗ trợ JSON, ví dụ: 123, true, \"abc\", {\"a\":1}): ")
+	configValueStr, _ := reader.ReadString('\n')
+	configValueStr = cleanInput(configValueStr)
+	configValueAny := parseInputToAny(configValueStr)
 
-	fmt.Print("Tự động xử lý (true/false): ")
-	autoResolveStr, _ := reader.ReadString('\n')
-	autoResolveStr = cleanInput(autoResolveStr)
-	autoResolve := false
-	if autoResolveStr == "true" {
-		autoResolve = true
-	}
-
-	fmt.Print("Nhập hành động tự động: ")
-	autoActionTaken, _ := reader.ReadString('\n')
-	autoActionTaken = cleanInput(autoActionTaken)
-
-	fmt.Print("Nhập cấp độ leo thang (1-5): ")
-	escalationLevelStr, _ := reader.ReadString('\n')
-	escalationLevelStr = cleanInput(escalationLevelStr)
-	escalationLevel := int32(1)
-	if escalationLevelStr != "" {
-		if e, err := strconv.Atoi(escalationLevelStr); err == nil {
-			escalationLevel = int32(e)
-		}
-	}
-
-	fmt.Print("Nhập đánh giá tác động: ")
-	impactAssessment, _ := reader.ReadString('\n')
-	impactAssessment = cleanInput(impactAssessment)
-
-	fmt.Print("Nhập người tạo: ")
+	fmt.Print("Nhập created_by (uuid): ")
 	createdBy, _ := reader.ReadString('\n')
 	createdBy = cleanInput(createdBy)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	resp, err := c.environmentalAlertClient.CreateEnvironmentalAlert(ctx, &proto_environmental_alert.CreateEnvironmentalAlertRequest{
-		DeviceId:         deviceId,
-		AlertType:        alertType,
-		CurrentValue:     currentValue,
-		ThresholdValue:   thresholdValue,
-		ThresholdType:    thresholdType,
-		Severity:         severity,
-		Priority:         priority,
-		AutoResolve:      autoResolve,
-		AutoActionTaken:  autoActionTaken,
-		EscalationLevel:  escalationLevel,
-		ImpactAssessment: impactAssessment,
-		CreatedBy:        createdBy,
-	})
+	req := &proto_system_configuration.CreateSystemConfigurationRequest{
+		ConfigKey:       configKey,
+		ConfigValue:     configValueAny,
+		DataType:        dataType,
+		Category:        category,
+		Description:     description,
+		IsSystemConfig:  isSystemConfig,
+		IsEditable:      isEditable,
+		ValidationRules: nil,
+		CreatedBy:       createdBy,
+	}
+
+	resp, err := c.systemConfigurationClient.CreateSystemConfiguration(ctx, req)
 	if err != nil {
-		fmt.Printf("Error calling CreateEnvironmentalAlert: %v\n", err)
+		fmt.Printf("Error CreateSystemConfiguration: %v\n", err)
 		return
 	}
 
-	fmt.Printf("Kết quả tạo cảnh báo môi trường:\n")
-	if resp.Alert != nil {
-		fmt.Printf("ID: %s\n", resp.Alert.Id)
-		fmt.Printf("Device ID: %s\n", resp.Alert.DeviceId)
-		fmt.Printf("Alert Type: %s\n", resp.Alert.AlertType)
-		fmt.Printf("Current Value: %.2f\n", resp.Alert.CurrentValue)
-		fmt.Printf("Threshold Value: %.2f\n", resp.Alert.ThresholdValue)
-		fmt.Printf("Severity: %s\n", resp.Alert.Severity)
-		fmt.Printf("Priority: %d\n", resp.Alert.Priority)
-		fmt.Printf("Status: %s\n", resp.Alert.Status)
+	fmt.Printf("Kết quả:\n")
+	if resp.Configuration != nil {
+		cfg := resp.Configuration
+		fmt.Printf("ID: %s\n", cfg.Id)
+		fmt.Printf("Key: %s\n", cfg.ConfigKey)
+		fmt.Printf("DataType: %s\n", cfg.DataType)
+		fmt.Printf("Category: %s\n", cfg.Category)
+		fmt.Printf("Description: %s\n", cfg.Description)
+		fmt.Printf("IsSystem: %t, IsEditable: %t\n", cfg.IsSystemConfig, cfg.IsEditable)
+		fmt.Printf("Value: %s\n", anyToString(cfg.ConfigValue))
 	}
 }
 
-func (c *EnvironmentalAlertClient) TestGetEnvironmentalAlert() {
-	fmt.Println("\n=== Kiểm thử Lấy Cảnh báo Môi trường ===")
+func (c *SystemConfigurationClient) TestGetSystemConfiguration() {
+	fmt.Println("\n=== Lấy System Configuration theo config_key ===")
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Nhập config_key: ")
+	configKey, _ := reader.ReadString('\n')
+	configKey = cleanInput(configKey)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	resp, err := c.systemConfigurationClient.GetSystemConfiguration(ctx, &proto_system_configuration.GetSystemConfigurationRequest{
+		ConfigKey: configKey,
+	})
+	if err != nil {
+		fmt.Printf("Error GetSystemConfiguration: %v\n", err)
+		return
+	}
+
+	if resp.Configuration != nil {
+		cfg := resp.Configuration
+		fmt.Printf("ID: %s\n", cfg.Id)
+		fmt.Printf("Key: %s\n", cfg.ConfigKey)
+		fmt.Printf("Value: %s\n", anyToString(cfg.ConfigValue))
+		fmt.Printf("DataType: %s\n", cfg.DataType)
+		fmt.Printf("Category: %s\n", cfg.Category)
+		fmt.Printf("Description: %s\n", cfg.Description)
+		fmt.Printf("IsSystem: %t, IsEditable: %t\n", cfg.IsSystemConfig, cfg.IsEditable)
+		fmt.Printf("ValidationRules: %s\n", anyToString(cfg.ValidationRules))
+		fmt.Printf("CreatedBy: %s\n", cfg.CreatedBy)
+		fmt.Printf("UpdatedBy: %s\n", cfg.UpdatedBy)
+		fmt.Printf("CreatedAt: %s\n", cfg.CreatedAt.AsTime())
+		fmt.Printf("UpdatedAt: %s\n", cfg.UpdatedAt.AsTime())
+	}
+}
+
+func (c *SystemConfigurationClient) TestListSystemConfiguration() {
+	fmt.Println("\n=== Liệt kê System Configuration ===")
+
+	reader := bufio.NewReader(os.Stdin)
+	offset, limit := inputPaging(reader)
+
+	fmt.Println("\n--- Tùy chọn bộ lọc (để trống để bỏ qua) ---")
+
+	fmt.Print("Nhập category: ")
+	category, _ := reader.ReadString('\n')
+	category = cleanInput(category)
+
+	fmt.Print("Nhập data_type: ")
+	dataType, _ := reader.ReadString('\n')
+	dataType = cleanInput(dataType)
+
+	fmt.Print("is_system_config? (true/false, trống = bỏ qua): ")
+	isSysStr, _ := reader.ReadString('\n')
+	isSysStr = cleanInput(isSysStr)
+	var isSystemConfig *bool
+	if isSysStr != "" {
+		b := isSysStr == "true"
+		isSystemConfig = &b
+	}
+
+	fmt.Print("is_editable? (true/false, trống = bỏ qua): ")
+	isEditableStr, _ := reader.ReadString('\n')
+	isEditableStr = cleanInput(isEditableStr)
+	var isEditable *bool
+	if isEditableStr != "" {
+		b := isEditableStr == "true"
+		isEditable = &b
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	req := &proto_system_configuration.ListSystemConfigurationRequest{
+		Pagination: &proto_common.PaginationRequest{Page: offset, PageSize: limit},
+		Category:   category,
+		DataType:   dataType,
+	}
+	if isSystemConfig != nil {
+		req.IsSystemConfig = isSystemConfig
+	}
+	if isEditable != nil {
+		req.IsEditable = isEditable
+	}
+
+	resp, err := c.systemConfigurationClient.ListSystemConfiguration(ctx, req)
+	if err != nil {
+		fmt.Printf("Error ListSystemConfiguration: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Tổng số: %d\n", resp.Pagination.Total)
+	for i, cfg := range resp.Configurations {
+		fmt.Printf("  [%d] ID: %s, Key: %s, Type: %s, Category: %s, Editable: %t\n", i+1, cfg.Id, cfg.ConfigKey, cfg.DataType, cfg.Category, cfg.IsEditable)
+		fmt.Printf("      Value: %s\n", anyToString(cfg.ConfigValue))
+		fmt.Printf("      Description: %s\n", cfg.Description)
+		fmt.Printf("      IsSystem: %t, IsEditable: %t\n", cfg.IsSystemConfig, cfg.IsEditable)
+		fmt.Printf("      ValidationRules: %s\n", anyToString(cfg.ValidationRules))
+		fmt.Printf("      CreatedBy: %s\n", cfg.CreatedBy)
+		fmt.Printf("      UpdatedBy: %s\n", cfg.UpdatedBy)
+		fmt.Printf("      CreatedAt: %s\n", cfg.CreatedAt.AsTime())
+		fmt.Printf("      UpdatedAt: %s\n", cfg.UpdatedAt.AsTime())
+		fmt.Printf("      Value: %s\n", anyToString(cfg.ConfigValue))
+	}
+}
+
+func (c *SystemConfigurationClient) TestUpdateSystemConfiguration() {
+	fmt.Println("\n=== Cập nhật System Configuration ===")
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Nhập ID cảnh báo môi trường: ")
+	fmt.Print("Nhập ID cấu hình: ")
 	id, _ := reader.ReadString('\n')
 	id = cleanInput(id)
 
+	fmt.Print("Nhập description (trống = bỏ qua): ")
+	description, _ := reader.ReadString('\n')
+	description = cleanInput(description)
+
+	fmt.Print("is_editable? (true/false, trống = bỏ qua): ")
+	isEditableStr, _ := reader.ReadString('\n')
+	isEditableStr = cleanInput(isEditableStr)
+	var isEditable *bool
+	if isEditableStr != "" {
+		b := isEditableStr == "true"
+		isEditable = &b
+	}
+
+	fmt.Print("Giá trị mới cho config_value (hỗ trợ JSON, trống = bỏ qua): ")
+	valueStr, _ := reader.ReadString('\n')
+	valueStr = cleanInput(valueStr)
+	var valueAny *anypb.Any
+	if valueStr != "" {
+		valueAny = parseInputToAny(valueStr)
+	}
+
+	fmt.Print("Nhập updated_by: ")
+	updatedBy, _ := reader.ReadString('\n')
+	updatedBy = cleanInput(updatedBy)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	resp, err := c.environmentalAlertClient.GetEnvironmentalAlert(ctx, &proto_environmental_alert.GetEnvironmentalAlertRequest{
-		Id: id,
-	})
+	req := &proto_system_configuration.UpdateSystemConfigurationRequest{
+		Id:          id,
+		Description: description,
+		UpdatedBy:   updatedBy,
+	}
+	if isEditable != nil {
+		req.IsEditable = isEditable
+	}
+	if valueAny != nil {
+		req.ConfigValue = valueAny
+	}
+
+	resp, err := c.systemConfigurationClient.UpdateSystemConfiguration(ctx, req)
 	if err != nil {
-		fmt.Printf("Error calling GetEnvironmentalAlert: %v\n", err)
+		fmt.Printf("Error UpdateSystemConfiguration: %v\n", err)
 		return
 	}
 
-	fmt.Printf("Kết quả lấy cảnh báo môi trường:\n")
-	if resp.Alert != nil {
-		fmt.Printf("ID: %s\n", resp.Alert.Id)
-		fmt.Printf("Device ID: %s\n", resp.Alert.DeviceId)
-		fmt.Printf("Loại cảnh báo: %s\n", resp.Alert.AlertType)
-		fmt.Printf("Giá trị hiện tại: %.2f\n", resp.Alert.CurrentValue)
-		fmt.Printf("Giá trị ngưỡng: %.2f\n", resp.Alert.ThresholdValue)
-		fmt.Printf("Kiểu ngưỡng: %s\n", resp.Alert.ThresholdType)
-		fmt.Printf("Mức độ nghiêm trọng: %s\n", resp.Alert.Severity)
-		fmt.Printf("Mức độ ưu tiên: %d\n", resp.Alert.Priority)
-		fmt.Printf("Trạng thái: %s\n", resp.Alert.Status)
-		fmt.Printf("Tự động xử lý: %t\n", resp.Alert.AutoResolve)
-		fmt.Printf("Hành động tự động: %s\n", resp.Alert.AutoActionTaken)
-		fmt.Printf("Cấp độ leo thang: %d\n", resp.Alert.EscalationLevel)
-		fmt.Printf("Đánh giá tác động: %s\n", resp.Alert.ImpactAssessment)
-		fmt.Printf("Người tạo: %s\n", resp.Alert.CreatedBy)
+	if resp.Configuration != nil {
+		cfg := resp.Configuration
+		fmt.Printf("Đã cập nhật: ID: %s, Key: %s, Editable: %t\n", cfg.Id, cfg.ConfigKey, cfg.IsEditable)
+		fmt.Printf("Giá trị: %s\n", anyToString(cfg.ConfigValue))
 	}
 }
 
-func (c *EnvironmentalAlertClient) TestListEnvironmentalAlerts() {
-	fmt.Println("\n=== Kiểm thử Liệt kê Cảnh báo Môi trường ===")
-
+func (c *SystemConfigurationClient) TestDeleteSystemConfiguration() {
+	fmt.Println("\n=== Xóa System Configuration theo config_key ===")
 	reader := bufio.NewReader(os.Stdin)
-
-	offset, limit := inputPaging(reader)
-
-	// Input filter options
-	fmt.Println("\n--- Tùy chọn bộ lọc (để trống để bỏ qua) ---")
-
-	fmt.Print("Nhập Device ID (để trống để bỏ qua): ")
-	deviceId, _ := reader.ReadString('\n')
-	deviceId = cleanInput(deviceId)
-
-	fmt.Print("Nhập loại cảnh báo (temperature_high/temperature_low/humidity_high/humidity_low/ph_high/ph_low/water_shortage/equipment_failure): ")
-	alertType, _ := reader.ReadString('\n')
-	alertType = cleanInput(alertType)
-
-	fmt.Print("Nhập trạng thái (active/acknowledged/resolved/escalated/ignored): ")
-	status, _ := reader.ReadString('\n')
-	status = cleanInput(status)
-
-	fmt.Print("Nhập mức độ nghiêm trọng (info/warning/critical/emergency): ")
-	severity, _ := reader.ReadString('\n')
-	severity = cleanInput(severity)
-
-	fmt.Print("Nhập mức độ ưu tiên (1-10, để trống để bỏ qua): ")
-	priorityStr, _ := reader.ReadString('\n')
-	priorityStr = cleanInput(priorityStr)
-	var priority int32
-	if priorityStr != "" {
-		if p, err := strconv.Atoi(priorityStr); err == nil {
-			priority = int32(p)
-		}
-	}
-
-	fmt.Print("Nhập cấp độ leo thang (0-5, để trống để bỏ qua): ")
-	escalationLevelStr, _ := reader.ReadString('\n')
-	escalationLevelStr = cleanInput(escalationLevelStr)
-	var escalationLevel int32
-	if escalationLevelStr != "" {
-		if e, err := strconv.Atoi(escalationLevelStr); err == nil {
-			escalationLevel = int32(e)
-		}
-	}
-
-	fmt.Print("Cảnh báo quá hạn (true/false, để trống để bỏ qua): ")
-	isOverdueStr, _ := reader.ReadString('\n')
-	isOverdueStr = cleanInput(isOverdueStr)
-	var isOverdue *bool
-	if isOverdueStr != "" {
-		overdue := isOverdueStr == "true"
-		isOverdue = &overdue
-	}
-
-	fmt.Print("Tự động xử lý (true/false, để trống để bỏ qua): ")
-	autoResolveStr, _ := reader.ReadString('\n')
-	autoResolveStr = cleanInput(autoResolveStr)
-	var autoResolve *bool
-	if autoResolveStr != "" {
-		resolve := autoResolveStr == "true"
-		autoResolve = &resolve
-	}
-
-	fmt.Print("Nhập người tạo (để trống để bỏ qua): ")
-	createdBy, _ := reader.ReadString('\n')
-	createdBy = cleanInput(createdBy)
-
-	fmt.Print("Nhập người xác nhận (để trống để bỏ qua): ")
-	acknowledgedBy, _ := reader.ReadString('\n')
-	acknowledgedBy = cleanInput(acknowledgedBy)
-
-	fmt.Print("Nhập người xử lý (để trống để bỏ qua): ")
-	resolvedBy, _ := reader.ReadString('\n')
-	resolvedBy = cleanInput(resolvedBy)
-
-	filters := &proto_environmental_alert.AlertFilters{}
-
-	if deviceId != "" {
-		filters.DeviceId = deviceId
-	}
-	if alertType != "" {
-		filters.AlertType = alertType
-	}
-	if status != "" {
-		filters.Status = status
-	}
-	if severity != "" {
-		filters.Severity = severity
-	}
-	if priority > 0 {
-		filters.Priority = priority
-	}
-	if escalationLevel > 0 {
-		filters.EscalationLevel = escalationLevel
-	}
-	if isOverdue != nil {
-		filters.IsOverdue = *isOverdue
-	}
-	if autoResolve != nil {
-		filters.AutoResolve = *autoResolve
-	}
-	if createdBy != "" {
-		filters.CreatedBy = createdBy
-	}
-	if acknowledgedBy != "" {
-		filters.AcknowledgedBy = acknowledgedBy
-	}
-	if resolvedBy != "" {
-		filters.ResolvedBy = resolvedBy
-	}
-
-	// Display current filters
-	fmt.Println("\n--- Bộ lọc hiện tại ---")
-	fmt.Printf("Filters: %+v\n", filters)
+	fmt.Print("Nhập config_key: ")
+	configKey, _ := reader.ReadString('\n')
+	configKey = cleanInput(configKey)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	resp, err := c.environmentalAlertClient.ListEnvironmentalAlerts(ctx, &proto_environmental_alert.ListEnvironmentalAlertsRequest{
-		Pagination: &proto_common.PaginationRequest{
-			Page:      offset,
-			PageSize:  limit,
-			SortBy:    "triggered_at",
-			SortOrder: "desc",
-		},
-		Filters: filters,
-	})
+	resp, err := c.systemConfigurationClient.DeleteSystemConfiguration(ctx, &proto_system_configuration.DeleteSystemConfigurationRequest{ConfigKey: configKey})
 	if err != nil {
-		fmt.Printf("Error calling ListEnvironmentalAlerts: %v\n", err)
+		fmt.Printf("Error DeleteSystemConfiguration: %v\n", err)
 		return
 	}
-
-	fmt.Printf("Kết quả liệt kê cảnh báo môi trường:\n")
-	fmt.Printf("Tổng số: %d\n", resp.Pagination.Total)
-	fmt.Printf("Danh sách cảnh báo môi trường:\n")
-	for i, alert := range resp.Alerts {
-		fmt.Printf("  [%d] ID: %s, Device: %s, Loại: %s, Mức độ: %s, Trạng thái: %s\n",
-			i+1, alert.Id, alert.DeviceId, alert.AlertType, alert.Severity, alert.Status)
-	}
-}
-
-func (c *EnvironmentalAlertClient) TestGetEnvironmentalAlertStatistics() {
-	fmt.Println("\n=== Kiểm thử Thống kê Cảnh báo Môi trường ===")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	resp, err := c.environmentalAlertClient.GetEnvironmentalAlertStatistics(ctx, &emptypb.Empty{})
-	if err != nil {
-		fmt.Printf("Error calling GetEnvironmentalAlertStatistics: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Kết quả thống kê cảnh báo môi trường:\n")
-	if resp.Statistics != nil {
-		fmt.Printf("Tổng số cảnh báo: %d\n", resp.Statistics.TotalAlerts)
-		fmt.Printf("Cảnh báo đang hoạt động: %d\n", resp.Statistics.ActiveAlerts)
-		fmt.Printf("Cảnh báo đã xử lý: %d\n", resp.Statistics.ResolvedAlerts)
-		fmt.Printf("Cảnh báo quá hạn: %d\n", resp.Statistics.OverdueAlerts)
-	}
+	fmt.Printf("Kết quả: %s\n", resp.Message)
 }
 
 // ================== Menu Functions ==================
 
 func printMainMenu() {
-	fmt.Println("\n=== Ứng dụng kiểm thử gRPC Environmental Alert Service ===")
-	fmt.Println("1. Dịch vụ Cảnh báo Môi trường")
+	fmt.Println("\n=== Ứng dụng kiểm thử gRPC System Configuration Service ===")
+	fmt.Println("1. Dịch vụ System Configuration")
 	fmt.Println("0. Thoát")
 	fmt.Print("Nhập lựa chọn của bạn: ")
 }
 
-func printEnvironmentalAlertMenu() {
-	fmt.Println("\n=== Dịch vụ Cảnh báo Môi trường ===")
-	fmt.Println("1. Tạo cảnh báo môi trường")
-	fmt.Println("2. Lấy cảnh báo môi trường")
-	fmt.Println("3. Liệt kê cảnh báo môi trường")
-	fmt.Println("4. Thống kê cảnh báo môi trường")
+func printSystemConfigurationMenu() {
+	fmt.Println("\n=== Dịch vụ System Configuration ===")
+	fmt.Println("1. Tạo cấu hình")
+	fmt.Println("2. Lấy cấu hình theo config_key")
+	fmt.Println("3. Liệt kê cấu hình")
+	fmt.Println("4. Cập nhật cấu hình")
+	fmt.Println("5. Xóa cấu hình theo config_key")
 	fmt.Println("0. Quay lại menu chính")
 	fmt.Print("Nhập lựa chọn của bạn: ")
 }
@@ -424,7 +401,7 @@ func main() {
 	}
 
 	fmt.Printf("Đang kết nối tới máy chủ gRPC tại %s...\n", address)
-	client, err := NewEnvironmentalAlertClient(address)
+	client, err := NewSystemConfigurationClient(address)
 	if err != nil {
 		log.Fatalf("Failed to create gRPC client: %v", err)
 	}
@@ -441,21 +418,23 @@ func main() {
 
 		switch choice {
 		case "1":
-			// Dịch vụ Cảnh báo Môi trường
+			// Dịch vụ System Configuration
 			for {
-				printEnvironmentalAlertMenu()
+				printSystemConfigurationMenu()
 				subChoice, _ := reader.ReadString('\n')
 				subChoice = cleanInput(subChoice)
 
 				switch subChoice {
 				case "1":
-					client.TestCreateEnvironmentalAlert()
+					client.TestCreateSystemConfiguration()
 				case "2":
-					client.TestGetEnvironmentalAlert()
+					client.TestGetSystemConfiguration()
 				case "3":
-					client.TestListEnvironmentalAlerts()
+					client.TestListSystemConfiguration()
 				case "4":
-					client.TestGetEnvironmentalAlertStatistics()
+					client.TestUpdateSystemConfiguration()
+				case "5":
+					client.TestDeleteSystemConfiguration()
 				case "0":
 				default:
 					fmt.Println("Invalid choice. Please try again.")

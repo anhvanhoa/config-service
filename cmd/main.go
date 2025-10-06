@@ -3,6 +3,7 @@ package main
 import (
 	"config-service/bootstrap"
 	"config-service/infrastructure/grpc_service"
+	system_configuration_service "config-service/infrastructure/grpc_service/system_configuration"
 	"context"
 
 	"github.com/anhvanhoa/service-core/domain/discovery"
@@ -31,8 +32,11 @@ func StartGRPCServer() {
 	}
 	discovery.Register()
 
+	systemConfigurationService := system_configuration_service.NewSystemConfigurationService(app.Repo.SystemConfiguration())
+
 	grpcSrv := grpc_service.NewGRPCServer(
 		env, log,
+		systemConfigurationService,
 	)
 
 	ctx, cancel := context.WithCancel(context.Background())

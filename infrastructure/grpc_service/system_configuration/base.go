@@ -1,8 +1,10 @@
 package system_configuration_service
 
 import (
+	"config-service/domain/repository"
 	"config-service/domain/usecase/system_configuration"
 
+	"github.com/anhvanhoa/service-core/utils"
 	proto_system_configuration "github.com/anhvanhoa/sf-proto/gen/system_configuration/v1"
 )
 
@@ -11,7 +13,9 @@ type SystemConfigurationService struct {
 	proto_system_configuration.UnsafeSystemConfigurationServiceServer
 }
 
-func NewSystemConfigurationService(systemConfigurationUsecase system_configuration.SystemConfigurationUsecase) proto_system_configuration.SystemConfigurationServiceServer {
+func NewSystemConfigurationService(repos repository.SystemConfigurationRepository) proto_system_configuration.SystemConfigurationServiceServer {
+	helper := utils.NewHelper()
+	systemConfigurationUsecase := system_configuration.NewSystemConfigurationUsecase(repos, helper)
 	return &SystemConfigurationService{
 		systemConfigurationUsecase: systemConfigurationUsecase,
 	}

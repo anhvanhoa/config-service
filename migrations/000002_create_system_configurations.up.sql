@@ -6,7 +6,7 @@ CREATE TABLE system_configurations (
     category VARCHAR(100),                       -- Nhóm cấu hình: tưới, bón phân, cảnh báo, cảm biến, báo cáo…
     description TEXT,                            -- Mô tả chi tiết về cấu hình
     is_system_config BOOLEAN DEFAULT FALSE,      -- Cho biết đây có phải là cấu hình hệ thống (cốt lõi, không thay đổi thường xuyên)
-    is_editable BOOLEAN DEFAULT TRUE,            -- Cho phép người dùng có thể chỉnh sửa hay không
+    is_editable BOOLEAN NOT NULL DEFAULT TRUE,   -- Cho phép người dùng có thể chỉnh sửa hay không
     validation_rules JSON,                       -- Quy tắc validate (ví dụ: min, max, regex…)
     created_by VARCHAR(36),                      -- Người tạo cấu hình
     updated_by VARCHAR(36),                      -- Người chỉnh sửa cấu hình gần nhất

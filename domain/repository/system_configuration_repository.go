@@ -14,6 +14,7 @@ type SystemConfigurationRepository interface {
 	List(ctx context.Context, pagination common.Pagination, filter SystemConfigurationFilter) ([]*entity.SystemConfiguration, int64, error)
 	Update(ctx context.Context, config *entity.SystemConfiguration) error
 	Delete(ctx context.Context, id string) error
+	CheckConfigKeyExists(ctx context.Context, configKey string) (bool, error)
 }
 
 type SystemConfigurationFilter struct {

@@ -22,26 +22,16 @@ func (s *SystemConfigurationService) UpdateSystemConfiguration(ctx context.Conte
 
 func (s *SystemConfigurationService) updateSystemConfigurationRequestToDomain(req *proto_system_configuration.UpdateSystemConfigurationRequest) system_configuration.UpdateSystemConfigurationRequest {
 	domainReq := system_configuration.UpdateSystemConfigurationRequest{
-		ID:        req.Id,
-		UpdatedBy: req.UpdatedBy,
+		ID:          req.Id,
+		UpdatedBy:   req.UpdatedBy,
+		Description: req.Description,
+		IsEditable:  req.IsEditable,
 	}
 
-	// Convert config_value from Any to interface{}
 	if req.ConfigValue != nil {
 		domainReq.ConfigValue = s.anyToInterface(req.ConfigValue)
 	}
 
-	// Set description if provided
-	if req.Description != "" {
-		domainReq.Description = req.Description
-	}
-
-	// Set is_editable if provided
-	if req.IsEditable != nil {
-		domainReq.IsEditable = req.IsEditable
-	}
-
-	// Convert validation_rules from Any to interface{}
 	if req.ValidationRules != nil {
 		domainReq.ValidationRules = s.anyToInterface(req.ValidationRules)
 	}
@@ -54,13 +44,10 @@ func (s *SystemConfigurationService) anyToInterface(any *anypb.Any) interface{} 
 		return nil
 	}
 
-	// Try to unmarshal to a structpb.Value first
 	var value structpb.Value
 	if err := any.UnmarshalTo(&value); err == nil {
-		// Convert structpb.Value to interface{}
 		return value.AsInterface()
 	}
 
-	// If unmarshaling fails, return the raw bytes
 	return any.Value
 }

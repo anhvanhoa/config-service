@@ -10,13 +10,11 @@ import (
 )
 
 func (s *SystemConfigurationService) ListSystemConfiguration(ctx context.Context, req *proto_system_configuration.ListSystemConfigurationRequest) (*proto_system_configuration.ListSystemConfigurationResponse, error) {
-	// Convert pagination
 	pagination := common.Pagination{
 		Page:     int(req.Pagination.Page),
 		PageSize: int(req.Pagination.PageSize),
 	}
 
-	// Convert filter
 	filter := repository.SystemConfigurationFilter{
 		Category:       req.Category,
 		DataType:       req.DataType,
@@ -29,18 +27,16 @@ func (s *SystemConfigurationService) ListSystemConfiguration(ctx context.Context
 		return nil, err
 	}
 
-	// Convert entities to proto
-	protoConfigs := make([]*proto_system_configuration.SystemConfiguration, len(configs))
-	for i, config := range configs {
+	protoConfigs := make([]*proto_system_configuration.SystemConfiguration, len(configs.Data))
+	for i, config := range configs.Data {
 		protoConfigs[i] = s.createEntitySystemConfigurationToProto(config)
 	}
 
-	// Create pagination response
 	paginationResponse := &proto_common.PaginationResponse{
-		Page:       req.Pagination.Page,
-		PageSize:   req.Pagination.PageSize,
+		Page:       int32(configs.Page),
+		PageSize:   int32(configs.PageSize),
 		Total:      int32(total),
-		TotalPages: int32((total + int64(req.Pagination.PageSize) - 1) / int64(req.Pagination.PageSize)),
+		TotalPages: int32(configs.TotalPages),
 	}
 
 	return &proto_system_configuration.ListSystemConfigurationResponse{

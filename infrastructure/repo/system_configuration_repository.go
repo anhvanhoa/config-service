@@ -7,16 +7,22 @@ import (
 	"fmt"
 
 	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 	"github.com/go-pg/pg/v10"
 )
 
 type systemConfigurationRepository struct {
-	db *pg.DB
+	db     *pg.DB
+	helper utils.Helper
 }
 
-func NewSystemConfigurationRepository(db *pg.DB) repository.SystemConfigurationRepository {
+func NewSystemConfigurationRepository(
+	db *pg.DB,
+	helper utils.Helper,
+) repository.SystemConfigurationRepository {
 	return &systemConfigurationRepository{
-		db: db,
+		db:     db,
+		helper: helper,
 	}
 }
 
@@ -38,6 +44,9 @@ func (r *systemConfigurationRepository) GetByConfigKey(ctx context.Context, conf
 	config := &entity.SystemConfiguration{}
 	err := r.db.Model(config).Context(ctx).Where("config_key = ?", configKey).Select()
 	if err != nil {
+		if err == pg.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return config, nil
@@ -66,7 +75,7 @@ func (r *systemConfigurationRepository) List(ctx context.Context, pagination com
 	}
 
 	if pagination.Page > 0 && pagination.PageSize > 0 {
-		offset := (pagination.Page - 1) * pagination.PageSize
+		offset := r.helper.CalculateOffset(pagination.Page, pagination.PageSize)
 		query = query.Limit(pagination.PageSize).Offset(offset)
 	}
 
@@ -97,4 +106,12 @@ func (r *systemConfigurationRepository) Delete(ctx context.Context, id string) e
 	config := &entity.SystemConfiguration{ID: id}
 	_, err := r.db.Model(config).Context(ctx).WherePK().Delete()
 	return err
+}
+
+func (r *systemConfigurationRepository) CheckConfigKeyExists(ctx context.Context, configKey string) (bool, error) {
+	count, err := r.db.Model(&entity.SystemConfiguration{}).Context(ctx).Where("config_key = ?", configKey).Count()
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

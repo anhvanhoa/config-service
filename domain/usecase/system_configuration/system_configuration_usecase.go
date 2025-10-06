@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 )
 
 type SystemConfigurationUsecase interface {
@@ -13,7 +14,7 @@ type SystemConfigurationUsecase interface {
 	GetByConfigKey(ctx context.Context, configKey string) (*entity.SystemConfiguration, error)
 	Update(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error)
 	DeleteByConfigKey(ctx context.Context, configKey string) error
-	List(ctx context.Context, pagination common.Pagination, filter repository.SystemConfigurationFilter) ([]*entity.SystemConfiguration, int64, error)
+	List(ctx context.Context, pagination common.Pagination, filter repository.SystemConfigurationFilter) (common.PaginationResult[*entity.SystemConfiguration], int64, error)
 	GetConfigValue(ctx context.Context, configKey string) (interface{}, error)
 }
 
@@ -25,13 +26,13 @@ type SystemConfigurationUsecaseImpl struct {
 	listUsecase   ListSystemConfigurationUsecase
 }
 
-func NewSystemConfigurationUsecase(repo repository.SystemConfigurationRepository) SystemConfigurationUsecase {
+func NewSystemConfigurationUsecase(repo repository.SystemConfigurationRepository, helper utils.Helper) SystemConfigurationUsecase {
 	return &SystemConfigurationUsecaseImpl{
 		createUsecase: NewCreateSystemConfigurationUsecase(repo),
 		getUsecase:    NewGetSystemConfigurationUsecase(repo),
 		updateUsecase: NewUpdateSystemConfigurationUsecase(repo),
 		deleteUsecase: NewDeleteSystemConfigurationUsecase(repo),
-		listUsecase:   NewListSystemConfigurationUsecase(repo),
+		listUsecase:   NewListSystemConfigurationUsecase(repo, helper),
 	}
 }
 
@@ -44,13 +45,13 @@ func (u *SystemConfigurationUsecaseImpl) GetByConfigKey(ctx context.Context, con
 }
 
 func (u *SystemConfigurationUsecaseImpl) Update(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error) {
-	return u.updateUsecase.Update(ctx, req)
+	return u.updateUsecase.Execute(ctx, req)
 }
 func (u *SystemConfigurationUsecaseImpl) DeleteByConfigKey(ctx context.Context, configKey string) error {
 	return u.deleteUsecase.DeleteByConfigKey(ctx, configKey)
 }
 
-func (u *SystemConfigurationUsecaseImpl) List(ctx context.Context, pagination common.Pagination, filter repository.SystemConfigurationFilter) ([]*entity.SystemConfiguration, int64, error) {
+func (u *SystemConfigurationUsecaseImpl) List(ctx context.Context, pagination common.Pagination, filter repository.SystemConfigurationFilter) (common.PaginationResult[*entity.SystemConfiguration], int64, error) {
 	return u.listUsecase.List(ctx, pagination, filter)
 }
 

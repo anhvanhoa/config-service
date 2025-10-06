@@ -15,13 +15,13 @@ type SystemConfiguration struct {
 	DataType        string
 	Category        string
 	Description     string
-	IsSystemConfig  bool
-	IsEditable      bool
+	IsSystemConfig  *bool
+	IsEditable      *bool
 	ValidationRules JSONValue
 	CreatedBy       string
 	UpdatedBy       string
 	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	UpdatedAt       *time.Time
 }
 
 type JSONValue struct {
@@ -46,7 +46,11 @@ func (j JSONValue) Value() (driver.Value, error) {
 	if j.Data == nil {
 		return nil, nil
 	}
-	return json.Marshal(j.Data)
+	b, err := json.Marshal(j.Data)
+	if err != nil {
+		return nil, err
+	}
+	return string(b), nil
 }
 
 func (j *JSONValue) UnmarshalJSON(data []byte) error {
@@ -100,12 +104,12 @@ func (sc *SystemConfiguration) GetObjectValue() map[string]any {
 }
 
 func (sc *SystemConfiguration) IsValidDataType() bool {
-	validTypes := []string{"string", "number", "boolean", "json", "array"}
+	validTypes := []string{DataTypeString, DataTypeNumber, DataTypeBoolean, DataTypeJSON, DataTypeArray}
 	return slices.Contains(validTypes, sc.DataType)
 }
 
 func (sc *SystemConfiguration) IsValidCategory() bool {
-	validCategories := []string{"irrigation", "fertilization", "alerts", "sensors", "reports"}
+	validCategories := []string{CategoryIrrigation, CategoryFertilization, CategoryAlerts, CategorySensors, CategoryReports}
 	return slices.Contains(validCategories, sc.Category)
 }
 

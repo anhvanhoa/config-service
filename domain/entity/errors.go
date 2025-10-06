@@ -5,12 +5,9 @@ import (
 )
 
 var (
-	ErrInvalidConfigKey        = oops.New("invalid config key")
-	ErrInvalidDataType         = oops.New("invalid data type")
-	ErrInvalidCategory         = oops.New("invalid category")
-	ErrInvalidValue            = oops.New("invalid config value")
-	ErrValidationFailed        = oops.New("validation failed")
-	ErrSystemConfigNotEditable = oops.New("system config is not editable")
+	ErrInvalidConfigKey = oops.New("Khóa cấu hình không hợp lệ")
+	ErrInvalidDataType  = oops.New("Loại dữ liệu không hợp lệ")
+	ErrInvalidCategory  = oops.New("Loại cấu hình không hợp lệ")
 )
 
 const (

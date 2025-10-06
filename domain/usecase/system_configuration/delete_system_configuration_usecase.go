@@ -29,7 +29,7 @@ func (u *DeleteSystemConfigurationUsecaseImpl) DeleteByConfigKey(ctx context.Con
 		return ErrConfigNotFound
 	}
 
-	if config.IsSystemConfig {
+	if *config.IsSystemConfig {
 		return ErrCannotDeleteSystemConfig
 	}
 

@@ -25,13 +25,13 @@ func (s *SystemConfigurationService) CreateSystemConfiguration(ctx context.Conte
 func (s *SystemConfigurationService) createSystemConfigurationRequestToDomain(req *proto_system_configuration.CreateSystemConfigurationRequest) system_configuration.CreateSystemConfigurationRequest {
 	return system_configuration.CreateSystemConfigurationRequest{
 		ConfigKey:       req.ConfigKey,
-		ConfigValue:     req.ConfigValue,
+		ConfigValue:     s.anyToInterface(req.ConfigValue),
 		DataType:        req.DataType,
 		Category:        req.Category,
 		Description:     req.Description,
-		IsSystemConfig:  req.IsSystemConfig,
-		IsEditable:      req.IsEditable,
-		ValidationRules: req.ValidationRules,
+		IsSystemConfig:  &req.IsSystemConfig,
+		IsEditable:      &req.IsEditable,
+		ValidationRules: s.anyToInterface(req.ValidationRules),
 		CreatedBy:       req.CreatedBy,
 	}
 }
@@ -45,14 +45,21 @@ func (s *SystemConfigurationService) createEntitySystemConfigurationToProto(conf
 		DataType:        config.DataType,
 		Category:        config.Category,
 		Description:     config.Description,
-		IsSystemConfig:  config.IsSystemConfig,
-		IsEditable:      config.IsEditable,
 		CreatedBy:       config.CreatedBy,
 		UpdatedBy:       config.UpdatedBy,
 		CreatedAt:       timestamppb.New(config.CreatedAt),
-		UpdatedAt:       timestamppb.New(config.UpdatedAt),
 		ConfigValue:     configValueAny,
 		ValidationRules: validationRulesAny,
+	}
+
+	if config.IsSystemConfig != nil {
+		protoConfig.IsSystemConfig = *config.IsSystemConfig
+	}
+	if config.IsEditable != nil {
+		protoConfig.IsEditable = *config.IsEditable
+	}
+	if config.UpdatedAt != nil {
+		protoConfig.UpdatedAt = timestamppb.New(*config.UpdatedAt)
 	}
 
 	return protoConfig

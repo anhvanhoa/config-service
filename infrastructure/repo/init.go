@@ -3,6 +3,7 @@ package repo
 import (
 	"config-service/domain/repository"
 
+	"github.com/anhvanhoa/service-core/utils"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -19,7 +20,8 @@ func (r *RepositoriesImpl) SystemConfiguration() repository.SystemConfigurationR
 }
 
 func InitRepositories(db *pg.DB) Repositories {
+	helper := utils.NewHelper()
 	return &RepositoriesImpl{
-		systemConfigurationRepo: NewSystemConfigurationRepository(db),
+		systemConfigurationRepo: NewSystemConfigurationRepository(db, helper),
 	}
 }

@@ -7,16 +7,16 @@ import (
 )
 
 type UpdateSystemConfigurationUsecase interface {
-	Update(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error)
+	Execute(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error)
 }
 
 type UpdateSystemConfigurationRequest struct {
-	ID              string      `json:"id" validate:"required"`
-	ConfigValue     interface{} `json:"config_value,omitempty"`
-	Description     string      `json:"description,omitempty"`
-	IsEditable      *bool       `json:"is_editable,omitempty"`
-	ValidationRules interface{} `json:"validation_rules,omitempty"`
-	UpdatedBy       string      `json:"updated_by"`
+	ID              string
+	ConfigValue     any
+	Description     string
+	IsEditable      *bool
+	ValidationRules any
+	UpdatedBy       string
 }
 
 type UpdateSystemConfigurationUsecaseImpl struct {
@@ -29,7 +29,7 @@ func NewUpdateSystemConfigurationUsecase(repo repository.SystemConfigurationRepo
 	}
 }
 
-func (u *UpdateSystemConfigurationUsecaseImpl) Update(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error) {
+func (u *UpdateSystemConfigurationUsecaseImpl) Execute(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error) {
 	if err := u.validateRequest(req); err != nil {
 		return nil, err
 	}
@@ -39,15 +39,34 @@ func (u *UpdateSystemConfigurationUsecaseImpl) Update(ctx context.Context, req U
 		return nil, ErrConfigNotFound
 	}
 
-	if !config.IsEditable {
+	if config.IsEditable != nil && !*config.IsEditable {
 		return nil, ErrConfigNotEditable
 	}
 
-	if err := config.Validate(); err != nil {
+	cf := &entity.SystemConfiguration{
+		ID:              config.ID,
+		ConfigKey:       config.ConfigKey,
+		ConfigValue:     entity.JSONValue{Data: req.ConfigValue},
+		Description:     req.Description,
+		IsEditable:      req.IsEditable,
+		DataType:        config.DataType,
+		Category:        config.Category,
+		IsSystemConfig:  config.IsSystemConfig,
+		ValidationRules: entity.JSONValue{Data: req.ValidationRules},
+		UpdatedBy:       req.UpdatedBy,
+	}
+
+	if req.IsEditable != nil {
+		cf.IsEditable = req.IsEditable
+	} else {
+		cf.IsEditable = config.IsEditable
+	}
+
+	if err := cf.Validate(); err != nil {
 		return nil, err
 	}
 
-	if err := u.repo.Update(ctx, config); err != nil {
+	if err := u.repo.Update(ctx, cf); err != nil {
 		return nil, err
 	}
 

@@ -16,8 +16,8 @@ type CreateSystemConfigurationRequest struct {
 	DataType        string
 	Category        string
 	Description     string
-	IsSystemConfig  bool
-	IsEditable      bool
+	IsSystemConfig  *bool
+	IsEditable      *bool
 	ValidationRules any
 	CreatedBy       string
 }
@@ -37,8 +37,9 @@ func (u *CreateSystemConfigurationUsecaseImpl) Execute(ctx context.Context, req 
 		return nil, err
 	}
 
-	existing, err := u.repo.GetByConfigKey(ctx, req.ConfigKey)
-	if err == nil && existing != nil {
+	if existing, err := u.repo.CheckConfigKeyExists(ctx, req.ConfigKey); err != nil {
+		return nil, err
+	} else if existing {
 		return nil, ErrConfigKeyAlreadyExists
 	}
 
