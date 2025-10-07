@@ -1,6 +1,6 @@
-# Monitoring Service
+# Config Service
 
-Microservice quản lý cảnh báo môi trường từ hệ thống IoT trong nông nghiệp, được xây dựng bằng Go và tuân theo nguyên tắc Clean Architecture. Service này giám sát các thông số môi trường như nhiệt độ, độ ẩm, pH, mức nước và trạng thái thiết bị để đảm bảo điều kiện tối ưu cho cây trồng.
+Microservice quản lý cấu hình hệ thống cho các ứng dụng IoT trong nông nghiệp, được xây dựng bằng Go và tuân theo nguyên tắc Clean Architecture. Service này cung cấp khả năng quản lý, lưu trữ và truy xuất các cấu hình hệ thống một cách linh hoạt và an toàn, hỗ trợ nhiều loại dữ liệu và validation rules.
 
 ## 🏗️ Kiến trúc
 
@@ -9,14 +9,14 @@ Dự án này tuân theo **Clean Architecture** với sự phân tách rõ ràng
 ```
 ├── domain/           # Tầng logic nghiệp vụ
 │   ├── entity/       # Các thực thể nghiệp vụ cốt lõi
-│   │   └── environmental_alert.go # Entity cảnh báo môi trường
+│   │   └── system_configuration.go # Entity cấu hình hệ thống
 │   ├── repository/   # Giao diện truy cập dữ liệu
-│   │   └── environmental_alert_repository.go
+│   │   └── system_configuration_repository.go
 │   └── usecase/      # Các trường hợp sử dụng nghiệp vụ
-│       └── environmental_alert/ # Use cases cảnh báo môi trường
+│       └── system_configuration/ # Use cases cấu hình hệ thống
 ├── infrastructure/   # Các mối quan tâm bên ngoài
 │   ├── grpc_service/ # Triển khai API gRPC
-│   │   ├── environmental_alert/ # gRPC handlers cảnh báo môi trường
+│   │   ├── system_configuration/ # gRPC handlers cấu hình hệ thống
 │   │   └── server.go            # Thiết lập gRPC server
 │   └── repo/         # Triển khai repository cơ sở dữ liệu
 ├── bootstrap/        # Khởi tạo ứng dụng
@@ -25,17 +25,17 @@ Dự án này tuân theo **Clean Architecture** với sự phân tách rõ ràng
 
 ## 🚀 Tính năng
 
-### Quản lý Cảnh báo Môi trường
-- ✅ Tạo, đọc, cập nhật, xóa cảnh báo môi trường
-- ✅ Liệt kê cảnh báo với bộ lọc (thiết bị, loại cảnh báo, trạng thái, mức độ nghiêm trọng)
-- ✅ Theo dõi các loại cảnh báo: nhiệt độ, độ ẩm, pH, mức nước, hỏng thiết bị
-- ✅ Quản lý trạng thái cảnh báo (hoạt động, đã xác nhận, đã xử lý, leo thang, bỏ qua)
-- ✅ Hệ thống ưu tiên và leo thang cảnh báo
-- ✅ Tự động xử lý và hành động khi điều kiện được phục hồi
-- ✅ Thông báo đa kênh (email, SMS, push notification, webhook)
-- ✅ Đánh giá tác động và ghi chú xử lý
-- ✅ Thống kê và báo cáo cảnh báo
-- ✅ Xác thực dữ liệu đầu vào và quy tắc nghiệp vụ
+### Quản lý Cấu hình Hệ thống
+- ✅ Tạo, đọc, cập nhật, xóa cấu hình hệ thống
+- ✅ Liệt kê cấu hình với bộ lọc (category, data type, editable status)
+- ✅ Hỗ trợ nhiều loại dữ liệu: string, number, boolean, JSON, array
+- ✅ Phân loại cấu hình theo category: irrigation, fertilization, alerts, sensors, reports
+- ✅ Quản lý quyền chỉnh sửa (is_editable) và cấu hình hệ thống (is_system_config)
+- ✅ Validation rules linh hoạt cho từng cấu hình
+- ✅ Theo dõi người tạo và cập nhật cấu hình
+- ✅ Timestamp tự động cho created_at và updated_at
+- ✅ Hỗ trợ cấu hình JSON phức tạp với nested objects
+- ✅ API gRPC với đầy đủ CRUD operations
 
 ## 🛠️ Công nghệ sử dụng
 
@@ -143,34 +143,38 @@ make docker-seed
 
 ### Dữ liệu mẫu bao gồm:
 
-**10 cảnh báo môi trường với các trạng thái đa dạng:**
+**30 cấu hình hệ thống với các category đa dạng:**
 
-**Các loại cảnh báo:**
-- **Nhiệt độ**: Cảnh báo nhiệt độ cao/thấp
-- **Độ ẩm**: Cảnh báo độ ẩm cao/thấp  
-- **pH**: Cảnh báo pH cao/thấp
-- **Nước**: Cảnh báo thiếu nước
-- **Thiết bị**: Cảnh báo hỏng thiết bị
+**Cấu hình Tưới nước (Irrigation):**
+- `irrigation_interval_hours`: Khoảng thời gian tưới (6 giờ)
+- `irrigation_duration_minutes`: Thời gian tưới mỗi lần (15 phút)
+- `irrigation_auto_mode`: Chế độ tưới tự động (true)
+- `irrigation_soil_moisture_threshold`: Ngưỡng độ ẩm đất (30%)
 
-**Trạng thái cảnh báo:**
-- **Active**: Cảnh báo đang hoạt động
-- **Acknowledged**: Đã được xác nhận
-- **Resolved**: Đã được xử lý
-- **Escalated**: Đã leo thang
-- **Ignored**: Đã bỏ qua
+**Cấu hình Bón phân (Fertilization):**
+- `fertilization_interval_days`: Khoảng thời gian bón phân (7 ngày)
+- `fertilization_amount_ml`: Lượng phân bón (50ml)
+- `fertilization_auto_mode`: Chế độ bón phân tự động (false)
+- `fertilization_nutrient_ratio`: Tỷ lệ dinh dưỡng NPK
 
-**Mức độ nghiêm trọng:**
-- **Info**: Thông tin
-- **Warning**: Cảnh báo
-- **Critical**: Nghiêm trọng
-- **Emergency**: Khẩn cấp
+**Cấu hình Cảnh báo (Alerts):**
+- `alert_temperature_high/low`: Ngưỡng nhiệt độ (35°C/10°C)
+- `alert_humidity_high/low`: Ngưỡng độ ẩm (80%/20%)
+- `alert_soil_moisture_low`: Ngưỡng độ ẩm đất (15%)
+- `alert_enabled`: Bật/tắt hệ thống cảnh báo
+- `alert_notification_methods`: Phương thức thông báo
 
-**Dữ liệu bao gồm:**
-- Giá trị hiện tại và ngưỡng cảnh báo
-- Thời gian kích hoạt, xác nhận và xử lý
-- Hành động tự động đã thực hiện
-- Đánh giá tác động và ghi chú xử lý
-- Thông tin thông báo đã gửi
+**Cấu hình Cảm biến (Sensors):**
+- `sensor_reading_interval_seconds`: Tần suất đọc dữ liệu (300s)
+- `sensor_data_retention_days`: Thời gian lưu trữ (30 ngày)
+- `sensor_calibration_enabled`: Hiệu chuẩn cảm biến
+- `sensor_temperature/humidity_offset`: Độ lệch hiệu chuẩn
+
+**Cấu hình Báo cáo (Reports):**
+- `report_generation_interval`: Tần suất tạo báo cáo (daily)
+- `report_include_charts`: Bao gồm biểu đồ (true)
+- `report_email_recipients`: Danh sách email nhận báo cáo
+- `report_export_formats`: Định dạng xuất báo cáo
 
 ## 📁 Cấu trúc Dự án
 
@@ -184,36 +188,37 @@ config-service/
 │   └── client/             # gRPC client để test
 ├── domain/                  # Logic nghiệp vụ (Clean Architecture)
 │   ├── entity/             # Các thực thể nghiệp vụ cốt lõi
-│   │   └── environmental_alert.go # Entity cảnh báo môi trường và DTOs
+│   │   ├── system_configuration.go # Entity cấu hình hệ thống
+│   │   └── errors.go       # Định nghĩa lỗi
 │   ├── repository/         # Giao diện truy cập dữ liệu
-│   │   └── environmental_alert_repository.go
+│   │   └── system_configuration_repository.go
 │   └── usecase/            # Các trường hợp sử dụng nghiệp vụ
-│       └── environmental_alert/ # Use cases cảnh báo môi trường
-│           ├── create_environmental_alert_usecase.go
-│           ├── get_environmental_alert_usecase.go
-│           ├── list_environmental_alert_usecase.go
-│           ├── update_environmental_alert_usecase.go
-│           ├── delete_environmental_alert_usecase.go
-│           ├── get_environmental_alert_statistics_usecase.go
-│           └── environmental_alert_usecase.go
+│       └── system_configuration/ # Use cases cấu hình hệ thống
+│           ├── create_system_configuration_usecase.go
+│           ├── get_system_configuration_usecase.go
+│           ├── list_system_configuration_usecase.go
+│           ├── update_system_configuration_usecase.go
+│           ├── delete_system_configuration_usecase.go
+│           ├── system_configuration_usecase.go
+│           └── errors.go
 ├── infrastructure/          # Các mối quan tâm bên ngoài
 │   ├── grpc_service/       # Triển khai API gRPC
-│   │   ├── environmental_alert/ # gRPC handlers cảnh báo môi trường
+│   │   ├── system_configuration/ # gRPC handlers cấu hình hệ thống
+│   │   │   ├── base.go
 │   │   │   ├── create.go
 │   │   │   ├── get.go
 │   │   │   ├── list.go
 │   │   │   ├── update.go
-│   │   │   ├── delete.go
-│   │   │   └── statistics.go
+│   │   │   └── delete.go
 │   │   └── server.go             # Thiết lập gRPC server
 │   └── repo/               # Triển khai cơ sở dữ liệu
-│       ├── environmental_alert_repository.go
+│       ├── system_configuration_repository.go
 │       └── init.go
 ├── migrations/              # Database migrations
 │   ├── 000000_common.up.sql
-│   ├── 000002_create_environmental_alerts.up.sql
+│   ├── 000002_create_system_configurations.up.sql
 │   └── seed/                     # Dữ liệu mẫu
-│       └── 000006_seed_environmental_alerts.up.sql
+│       └── 000001_seed_system_configurations.up.sql
 ├── script/seed/             # Script chèn dữ liệu mẫu
 ├── doc/                     # Tài liệu
 └── logs/                    # Log ứng dụng
@@ -241,54 +246,38 @@ make help            # Hiển thị tất cả lệnh có sẵn
 
 ## 📊 Mô hình Dữ liệu
 
-### Cảnh báo Môi trường (Environmental Alert)
-- **ID**: Định danh duy nhất
-- **DeviceID**: ID thiết bị IoT phát hiện cảnh báo
-- **AlertType**: Loại cảnh báo (temperature_high, temperature_low, humidity_high, humidity_low, ph_high, ph_low, water_shortage, equipment_failure)
-- **CurrentValue**: Giá trị đo được tại thời điểm cảnh báo
-- **ThresholdValue**: Ngưỡng quy định gây ra cảnh báo
-- **ThresholdType**: Kiểu ngưỡng (min, max, range)
-- **Severity**: Mức độ nghiêm trọng (info, warning, critical, emergency)
-- **Priority**: Mức độ ưu tiên (1 cao nhất, 5 thấp nhất)
-- **TriggeredAt**: Thời điểm kích hoạt cảnh báo
-- **AcknowledgedAt**: Thời điểm xác nhận cảnh báo
-- **AcknowledgedBy**: Người xác nhận cảnh báo
-- **ResolvedAt**: Thời điểm xử lý cảnh báo
-- **ResolvedBy**: Người xử lý cảnh báo
-- **AutoResolve**: Tự động xử lý khi điều kiện an toàn
-- **Status**: Trạng thái (active, acknowledged, resolved, escalated, ignored)
-- **AutoActionTaken**: Hành động tự động đã thực hiện
-- **EscalationLevel**: Cấp độ leo thang
-- **NotificationSent**: Thông tin thông báo đã gửi (JSON)
-- **ImpactAssessment**: Đánh giá tác động
-- **ResolutionNotes**: Ghi chú xử lý
-- **CreatedBy**: Người tạo cảnh báo
-- **Timestamps**: Thời gian tạo/cập nhật
+### Cấu hình Hệ thống (System Configuration)
+- **ID**: Định danh duy nhất (UUID)
+- **ConfigKey**: Khóa cấu hình duy nhất (ví dụ: irrigation_interval_hours)
+- **ConfigValue**: Giá trị cấu hình (JSON, có thể là string, number, boolean, object, array)
+- **DataType**: Kiểu dữ liệu (string, number, boolean, json, array)
+- **Category**: Nhóm cấu hình (irrigation, fertilization, alerts, sensors, reports)
+- **Description**: Mô tả chi tiết về cấu hình
+- **IsSystemConfig**: Có phải cấu hình hệ thống cốt lõi hay không
+- **IsEditable**: Có thể chỉnh sửa hay không
+- **ValidationRules**: Quy tắc validate (min, max, regex, enum, etc.)
+- **CreatedBy**: Người tạo cấu hình
+- **UpdatedBy**: Người cập nhật cấu hình gần nhất
+- **CreatedAt**: Thời điểm tạo
+- **UpdatedAt**: Thời điểm cập nhật gần nhất
 
 ## 🔌 API Endpoints
 
 Service cung cấp các endpoint gRPC:
 
-### Environmental Alert Service
-- `CreateEnvironmentalAlert` - Tạo cảnh báo môi trường mới
-- `GetEnvironmentalAlert` - Lấy thông tin cảnh báo theo ID
-- `UpdateEnvironmentalAlert` - Cập nhật thông tin cảnh báo
-- `DeleteEnvironmentalAlert` - Xóa cảnh báo môi trường
-- `ListEnvironmentalAlerts` - Liệt kê cảnh báo với bộ lọc
-- `GetEnvironmentalAlertStatistics` - Lấy thống kê cảnh báo
-- `GetActiveAlerts` - Lấy danh sách cảnh báo đang hoạt động
-- `GetByDevice` - Lấy cảnh báo theo thiết bị
-- `GetByAlertType` - Lấy cảnh báo theo loại
-- `GetByStatus` - Lấy cảnh báo theo trạng thái
-- `GetBySeverity` - Lấy cảnh báo theo mức độ nghiêm trọng
-- `GetByPriority` - Lấy cảnh báo theo mức độ ưu tiên
-- `GetByDateRange` - Lấy cảnh báo theo khoảng thời gian
-- `GetOverdueAlerts` - Lấy cảnh báo quá hạn
-- `GetEscalatedAlerts` - Lấy cảnh báo đã leo thang
-- `AcknowledgeAlert` - Xác nhận cảnh báo
-- `ResolveAlert` - Xử lý cảnh báo
-- `EscalateAlert` - Leo thang cảnh báo
-- `IgnoreAlert` - Bỏ qua cảnh báo
+### System Configuration Service
+- `CreateSystemConfiguration` - Tạo cấu hình hệ thống mới
+- `GetSystemConfiguration` - Lấy thông tin cấu hình theo ID
+- `UpdateSystemConfiguration` - Cập nhật thông tin cấu hình
+- `DeleteSystemConfiguration` - Xóa cấu hình hệ thống
+- `ListSystemConfigurations` - Liệt kê cấu hình với bộ lọc
+- `GetByCategory` - Lấy cấu hình theo category
+- `GetByDataType` - Lấy cấu hình theo kiểu dữ liệu
+- `GetByKey` - Lấy cấu hình theo config key
+- `GetEditableConfigs` - Lấy danh sách cấu hình có thể chỉnh sửa
+- `GetSystemConfigs` - Lấy danh sách cấu hình hệ thống
+- `ValidateConfiguration` - Validate cấu hình theo rules
+- `BulkUpdateConfigurations` - Cập nhật nhiều cấu hình cùng lúc
 
 ## 🧪 Testing
 
@@ -348,4 +337,4 @@ Dự án này được cấp phép theo MIT License.
 
 ---
 
-**Lưu ý**: Service này được thiết kế để quản lý cảnh báo môi trường từ hệ thống IoT trong nông nghiệp, tuân theo các nguyên tắc kiến trúc microservice để có thể mở rộng và bảo trì dễ dàng. Service giúp giám sát và phản ứng kịp thời với các thay đổi môi trường để đảm bảo điều kiện tối ưu cho cây trồng.
+**Lưu ý**: Service này được thiết kế để quản lý cấu hình hệ thống cho các ứng dụng IoT trong nông nghiệp, tuân theo các nguyên tắc kiến trúc microservice để có thể mở rộng và bảo trì dễ dàng. Service cung cấp khả năng quản lý cấu hình linh hoạt, hỗ trợ nhiều loại dữ liệu và validation rules để đảm bảo tính nhất quán và an toàn của hệ thống.
