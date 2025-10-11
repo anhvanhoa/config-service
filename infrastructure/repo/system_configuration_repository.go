@@ -44,9 +44,6 @@ func (r *systemConfigurationRepository) GetByConfigKey(ctx context.Context, conf
 	config := &entity.SystemConfiguration{}
 	err := r.db.Model(config).Context(ctx).Where("config_key = ?", configKey).Select()
 	if err != nil {
-		if err == pg.ErrNoRows {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return config, nil

@@ -10,6 +10,12 @@ import (
 )
 
 func (s *SystemConfigurationService) ListSystemConfiguration(ctx context.Context, req *proto_system_configuration.ListSystemConfigurationRequest) (*proto_system_configuration.ListSystemConfigurationResponse, error) {
+	if req.Pagination == nil {
+		req.Pagination = &proto_common.PaginationRequest{
+			Page:     1,
+			PageSize: 10,
+		}
+	}
 	pagination := common.Pagination{
 		Page:     int(req.Pagination.Page),
 		PageSize: int(req.Pagination.PageSize),

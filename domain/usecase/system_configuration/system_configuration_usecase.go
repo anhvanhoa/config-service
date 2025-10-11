@@ -15,7 +15,7 @@ type SystemConfigurationUsecase interface {
 	Update(ctx context.Context, req UpdateSystemConfigurationRequest) (*entity.SystemConfiguration, error)
 	DeleteByConfigKey(ctx context.Context, configKey string) error
 	List(ctx context.Context, pagination common.Pagination, filter repository.SystemConfigurationFilter) (common.PaginationResult[*entity.SystemConfiguration], int64, error)
-	GetConfigValue(ctx context.Context, configKey string) (interface{}, error)
+	GetConfigValue(ctx context.Context, configKey string) (any, error)
 }
 
 type SystemConfigurationUsecaseImpl struct {
