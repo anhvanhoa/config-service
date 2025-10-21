@@ -3,17 +3,17 @@ module config-service
 go 1.25.0
 
 require (
-	github.com/anhvanhoa/service-core v0.0.0-20251002070927-668b593b5c06
-	github.com/anhvanhoa/sf-proto v0.0.0-20251011005449-80f7bd3e77be
+	github.com/anhvanhoa/service-core v0.0.0-20251020172747-f7fb8c899980
+	github.com/anhvanhoa/sf-proto v0.0.0-20251016163703-9927554855c2
 	github.com/go-pg/pg/v10 v10.15.0
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.75.1
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250912141014-52f32327d4b0.1 // indirect
 	buf.build/go/protovalidate v1.0.0 // indirect
 	cel.dev/expr v0.24.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect

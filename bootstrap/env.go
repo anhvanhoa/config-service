@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/anhvanhoa/service-core/bootstrap/config"
+	"github.com/anhvanhoa/service-core/domain/grpc_client"
 )
 
 type Env struct {
@@ -11,11 +12,13 @@ type Env struct {
 
 	UrlDb string `mapstructure:"url_db"`
 
-	NameService   string `mapstructure:"name_service"`
-	PortGrpc      int    `mapstructure:"port_grpc"`
-	HostGprc      string `mapstructure:"host_grpc"`
-	IntervalCheck string `mapstructure:"interval_check"`
-	TimeoutCheck  string `mapstructure:"timeout_check"`
+	NameService           string                    `mapstructure:"name_service"`
+	PortGrpc              int                       `mapstructure:"port_grpc"`
+	HostGprc              string                    `mapstructure:"host_grpc"`
+	IntervalCheck         string                    `mapstructure:"interval_check"`
+	TimeoutCheck          string                    `mapstructure:"timeout_check"`
+	GrpcClients           []*grpc_client.ConfigGrpc `mapstructure:"grpc_clients"`
+	PermissionServiceAddr string                    `mapstructure:"permission_service_addr"`
 }
 
 func NewEnv(env any) {

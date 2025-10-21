@@ -1,7 +1,16 @@
-node_env: "development"
-url_db: "postgres://postgres:123456@localhost:5432/config_service_db?sslmode=disable"
-name_service: "ConfigService"
+node_env: 'development'
+url_db: 'postgres://postgres:123456@localhost:5432/config_service_db?sslmode=disable'
+name_service: 'ConfigService'
 port_grpc: 50057
-host_grpc: "localhost"
-interval_check: "20s"
-timeout_check: "15s"
+host_grpc: 'localhost'
+interval_check: '20s'
+timeout_check: '15s'
+grpc_clients:
+    - Name: 'PermissionService'
+      ServerAddress: 'localhost:50051'
+      MaxRetries: 3
+      Time: 20
+      Timeout: 15
+      PermitWithoutStream: true
+
+permission_service_addr: 'localhost:50051'

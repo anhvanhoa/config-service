@@ -19,8 +19,7 @@ func (r *RepositoriesImpl) SystemConfiguration() repository.SystemConfigurationR
 	return r.systemConfigurationRepo
 }
 
-func InitRepositories(db *pg.DB) Repositories {
-	helper := utils.NewHelper()
+func InitRepositories(db *pg.DB, helper utils.Helper) Repositories {
 	return &RepositoriesImpl{
 		systemConfigurationRepo: NewSystemConfigurationRepository(db, helper),
 	}

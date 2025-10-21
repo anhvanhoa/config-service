@@ -13,8 +13,7 @@ type SystemConfigurationService struct {
 	proto_system_configuration.UnsafeSystemConfigurationServiceServer
 }
 
-func NewSystemConfigurationService(repos repository.SystemConfigurationRepository) proto_system_configuration.SystemConfigurationServiceServer {
-	helper := utils.NewHelper()
+func NewSystemConfigurationService(repos repository.SystemConfigurationRepository, helper utils.Helper) proto_system_configuration.SystemConfigurationServiceServer {
 	systemConfigurationUsecase := system_configuration.NewSystemConfigurationUsecase(repos, helper)
 	return &SystemConfigurationService{
 		systemConfigurationUsecase: systemConfigurationUsecase,

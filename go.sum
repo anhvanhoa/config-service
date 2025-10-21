@@ -1,5 +1,5 @@
-buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1 h1:DQLS/rRxLHuugVzjJU5AvOwD57pdFl9he/0O7e5P294=
-buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1/go.mod h1:aY3zbkNan5F+cGm9lITDP6oxJIwu0dn9KjJuJjWaHkg=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250912141014-52f32327d4b0.1 h1:31on4W/yPcV4nZHL4+UCiCvLPsMqe/vJcNg8Rci0scc=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20250912141014-52f32327d4b0.1/go.mod h1:fUl8CEN/6ZAMk6bP8ahBJPUJw7rbp+j4x+wCcYi2IG4=
 buf.build/go/protovalidate v1.0.0 h1:IAG1etULddAy93fiBsFVhpj7es5zL53AfB/79CVGtyY=
 buf.build/go/protovalidate v1.0.0/go.mod h1:KQmEUrcQuC99hAw+juzOEAmILScQiKBP1Oc36vvCLW8=
 cel.dev/expr v0.24.0 h1:56OvJKSH3hDGL0ml5uSxZmz3/3Pq4tJ+fb1unVLAFcY=
@@ -13,12 +13,10 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
 github.com/anhvanhoa/service-core v0.0.0-20251002070927-668b593b5c06 h1:eBrQRJzD9YZdosbl4WJBgMbXUqwq7LthMObc0Jg2ZD0=
 github.com/anhvanhoa/service-core v0.0.0-20251002070927-668b593b5c06/go.mod h1:ciFblCCLxZkKTDeoMnuxRLsRdIVu1pOt4mjmLZZIPOg=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011003552-e0180adc0808 h1:5bei36OCNoUwG9KC18OPDHgvKZpG63jYGf19huZhF4A=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011003552-e0180adc0808/go.mod h1:yejWiDTB9qg2OuykuW0XnklYLsfm9tZP6/58KV5eBpY=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011004610-f297ca2a12f2 h1:AxzB1pi8hkGqjDDReMcZUr0Vc3uuVEBHSE2EuM0u8hc=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011004610-f297ca2a12f2/go.mod h1:yejWiDTB9qg2OuykuW0XnklYLsfm9tZP6/58KV5eBpY=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011005449-80f7bd3e77be h1:0jKtm0aE18H9hBNcF78+LHdsGr8RM9Jiusr7qKKy6o0=
-github.com/anhvanhoa/sf-proto v0.0.0-20251011005449-80f7bd3e77be/go.mod h1:yejWiDTB9qg2OuykuW0XnklYLsfm9tZP6/58KV5eBpY=
+github.com/anhvanhoa/service-core v0.0.0-20251020172747-f7fb8c899980 h1:/5i5UpiQjXl3e4dRHAGhVYnBMLLNxiKmsmEck+Q5B/c=
+github.com/anhvanhoa/service-core v0.0.0-20251020172747-f7fb8c899980/go.mod h1:BxIDMQXp6Hii0xdARM1rmGIhJLsaZ07+0SWd6nEVG3Q=
+github.com/anhvanhoa/sf-proto v0.0.0-20251016163703-9927554855c2 h1:ZbQkN863GQ4nvZRoHHZb82ZX4W0qYsKojewHV6zn36c=
+github.com/anhvanhoa/sf-proto v0.0.0-20251016163703-9927554855c2/go.mod h1:fDjSJFXd2PoPiOod6qKRGVjurABW3IuMERwuqyUf3u0=
 github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYWrPrQ=
 github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmOABFgjdkM7Nw=
 github.com/armon/go-metrics v0.4.1 h1:hR91U9KYmb6bLBYLQjyM+3j+rcd/UhE+G78SFnF8gJA=
@@ -326,8 +324,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20251007200510-49b9836ed3ff h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20251007200510-49b9836ed3ff/go.mod h1:dbWfpVPvW/RqafStmRWBUpMN14puDezDMHxNYiRfQu0=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20251002232023-7c0ddcbb5797 h1:CirRxTOwnRWVLKzDNrs0CXAaVozJoR4G9xvdRecrdpk=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20251002232023-7c0ddcbb5797/go.mod h1:HSkG/KdJWusxU1F6CNrwNDjBMgisKxGnc5dAZfT0mjQ=
-google.golang.org/grpc v1.75.1 h1:/ODCNEuf9VghjgO3rqLcfg8fiOP0nSluljWFlDxELLI=
-google.golang.org/grpc v1.75.1/go.mod h1:JtPAzKiq4v1xcAB2hydNlWI2RnF85XXcV0mhKXr2ecQ=
+google.golang.org/grpc v1.76.0 h1:UnVkv1+uMLYXoIz6o7chp59WfQUYA2ex/BXQ9rHZu7A=
+google.golang.org/grpc v1.76.0/go.mod h1:Ju12QI8M6iQJtbcsV+awF5a4hfJMLi4X0JLo94ULZ6c=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
 google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
 google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=
