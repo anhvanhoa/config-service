@@ -50,6 +50,9 @@ build: ## Build the application
 run: ## Run the application
 	go run cmd/main.go
 
+start: ## Start the application
+	./bin/app
+
 client: ## Run the client application
 	go run cmd/client/main.go
 
