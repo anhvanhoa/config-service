@@ -42,7 +42,7 @@ func StartGRPCServer() {
 	systemConfigurationService := system_configuration_service.NewSystemConfigurationService(app.Repo.SystemConfiguration(), app.Helper)
 
 	grpcSrv := grpc_service.NewGRPCServer(
-		env, log,
+		env, log, app.Cacher,
 		systemConfigurationService,
 	)
 

@@ -1,4 +1,5 @@
 node_env: 'development'
+secret_service: 'ConfigServiceSecret'
 url_db: 'postgres://postgres:123456@localhost:5432/config_service_db?sslmode=disable'
 name_service: 'ConfigService'
 port_grpc: 50057
@@ -12,5 +13,15 @@ grpc_clients:
       Time: 20
       Timeout: 15
       PermitWithoutStream: true
+      SecretInternal: 'PermissionServiceSecret'
 
 permission_service_addr: 'localhost:50051'
+
+db_cache:
+  addr: "localhost:6379"
+  db: 1
+  password: ""
+  max_idle: 10
+  max_active: 100
+  idle_timeout: 240
+  network: "tcp"
