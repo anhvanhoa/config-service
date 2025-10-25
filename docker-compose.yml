@@ -8,7 +8,7 @@ services:
     image: config-service:latest
     container_name: config_service_app
     ports:
-      - "50054:50054"
+      - "40054:40054"
     networks:
       - sf_network
     environment:
@@ -18,7 +18,7 @@ services:
       - ${CONFIG_FILE}:/config/${CONFIG_FILE}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:50054/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:40054/health"]
       interval: 30s
       timeout: 10s
       retries: 3
