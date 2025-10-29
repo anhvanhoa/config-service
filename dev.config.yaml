@@ -1,5 +1,6 @@
 node_env: 'development'
 secret_service: 'ConfigServiceSecret'
+access_secret: "your-access-jwt-secret-here"
 url_db: 'postgres://postgres:123456@localhost:5432/config_service_db?sslmode=disable'
 name_service: 'ConfigService'
 port_grpc: 40054
